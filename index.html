@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jev Playground · TypeSafe System One</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans+Text:wght@400;500;700&family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+<style>
+/* ===== Material Design 3 tokens ===== */
+:root{
+  /* light scheme (primary = Google Blue family) */
+  --md-primary:#0b57d0;
+  --md-on-primary:#ffffff;
+  --md-primary-container:#d3e3fd;
+  --md-on-primary-container:#041e49;
+  --md-secondary:#00639b;
+  --md-tertiary:#146c2e;         /* green */
+  --md-tertiary-container:#c4eed0;
+  --md-error:#b3261e;
+  --md-error-container:#f9dedc;
+  --md-on-error-container:#410e0b;
+
+  --md-surface:#faf9fd;
+  --md-surface-dim:#dad9dd;
+  --md-surface-bright:#faf9fd;
+  --md-surface-c-lowest:#ffffff;
+  --md-surface-c-low:#f3f2f7;
+  --md-surface-c:#eeedf1;
+  --md-surface-c-high:#e8e7eb;
+  --md-surface-c-highest:#e2e2e6;
+  --md-on-surface:#1a1c1e;
+  --md-on-surface-var:#43474e;
+  --md-outline:#73777f;
+  --md-outline-var:#c3c7cf;
+
+  /* accents for data viz (tonal, Material-ish) */
+  --viz-blue:#0b57d0;
+  --viz-green:#146c2e;
+  --viz-amber:#e37400;
+  --viz-purple:#6750a4;
+  --viz-red:#b3261e;
+  --viz-teal:#00696e;
+
+  --md-shadow:rgba(0,0,0,.15);
+
+  /* type */
+  --f-brand:'Google Sans Text','Roboto',system-ui,sans-serif;
+  --f-body:'Roboto',system-ui,sans-serif;
+  --f-mono:'Roboto Mono',ui-monospace,monospace;
+
+  /* elevation shadows (M3) */
+  --el1:0 1px 2px rgba(0,0,0,.30),0 1px 3px 1px rgba(0,0,0,.15);
+  --el2:0 1px 2px rgba(0,0,0,.30),0 2px 6px 2px rgba(0,0,0,.15);
+  --el3:0 4px 8px 3px rgba(0,0,0,.15),0 1px 3px rgba(0,0,0,.30);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--md-surface);
+  color:var(--md-on-surface);
+  font-family:var(--f-body);
+  font-size:14px;line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--md-primary-container)}
+.msym{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;
+  line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;white-space:nowrap;
+  direction:ltr;-webkit-font-feature-settings:'liga';-webkit-font-smoothing:antialiased;vertical-align:middle;}
+
+/* ===== top app bar ===== */
+.appbar{
+  display:flex;align-items:center;gap:16px;height:64px;padding:0 24px;
+  background:var(--md-surface-c);position:sticky;top:0;z-index:50;
+}
+.appbar .logo-mark{
+  width:40px;height:40px;border-radius:50%;background:var(--md-primary);
+  display:flex;align-items:center;justify-content:center;color:#fff;
+  font-family:var(--f-brand);font-weight:700;font-size:20px;flex-shrink:0;
+}
+.appbar .titles h1{font-family:var(--f-brand);font-size:20px;font-weight:500;color:var(--md-on-surface);line-height:1.2}
+.appbar .titles p{font-size:12px;color:var(--md-on-surface-var);font-family:var(--f-mono)}
+.appbar .spacer{flex:1}
+.endpoint-chip{
+  display:flex;align-items:center;gap:8px;height:32px;padding:0 14px;border-radius:8px;
+  background:var(--md-surface-c-high);font-family:var(--f-mono);font-size:12px;color:var(--md-on-surface-var);
+}
+.endpoint-chip .m{color:var(--md-tertiary);font-weight:500}
+
+/* ===== layout ===== */
+.wrap{display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:24px;align-items:start;max-width:1600px;margin:0 auto}
+
+/* M3 card = surface container with rounded corners */
+.card{
+  background:var(--md-surface-c-low);border-radius:16px;padding:24px;
+}
+.card + .card{margin-top:20px}
+.pane-title{
+  font-family:var(--f-brand);font-size:16px;font-weight:500;color:var(--md-on-surface);
+  display:flex;align-items:center;gap:10px;margin-bottom:4px;
+}
+.pane-title .msym{color:var(--md-primary);font-size:22px}
+.pane-sub{font-size:13px;color:var(--md-on-surface-var);margin-bottom:20px}
+
+/* ===== M3 text fields (outlined) ===== */
+.tf{position:relative;margin-bottom:4px}
+.tf label{
+  position:absolute;left:12px;top:-8px;background:var(--md-surface-c-low);padding:0 5px;
+  font-size:12px;color:var(--md-on-surface-var);font-family:var(--f-body);z-index:1;
+}
+.tf.focus label{color:var(--md-primary)}
+.tf.err label{color:var(--md-error)}
+.tf input,.tf textarea,.tf select{
+  width:100%;background:transparent;color:var(--md-on-surface);
+  border:1px solid var(--md-outline);border-radius:8px;padding:14px 14px;
+  font-family:var(--f-body);font-size:14px;transition:border-color .15s,box-shadow .15s;
+}
+.tf textarea{font-family:var(--f-mono);font-size:13px;line-height:1.6;resize:vertical}
+.tf input:focus,.tf textarea:focus,.tf select:focus{
+  outline:none;border-color:var(--md-primary);box-shadow:inset 0 0 0 1px var(--md-primary);
+}
+.tf.mono input{font-family:var(--f-mono)}
+.tf select{cursor:pointer;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='%2343474e'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;padding-right:40px;
+}
+.supporting{font-size:12px;color:var(--md-on-surface-var);margin:6px 4px 0;line-height:1.4}
+.config-grid{display:grid;grid-template-columns:2fr 1fr;gap:20px}
+
+/* ===== M3 segmented button ===== */
+.segmented{display:inline-flex;border:1px solid var(--md-outline);border-radius:20px;overflow:hidden;height:40px}
+.segmented .seg{
+  display:flex;align-items:center;gap:6px;padding:0 18px;font-family:var(--f-body);font-size:14px;
+  color:var(--md-on-surface-var);cursor:pointer;background:transparent;border:none;position:relative;
+  transition:background .15s;
+}
+.segmented .seg + .seg{border-left:1px solid var(--md-outline)}
+.segmented .seg:hover{background:rgba(11,87,208,.06)}
+.segmented .seg.active{background:var(--md-secondary-container,#d3e3fd);color:var(--md-on-primary-container);font-weight:500}
+.segmented .seg.active .msym{opacity:1}
+.segmented .seg .msym{font-size:18px;opacity:0}
+.segmented .seg.active .msym{opacity:1}
+
+/* ===== questions ===== */
+.q-list{display:flex;flex-direction:column;gap:16px;margin-bottom:16px}
+.q-card{
+  background:var(--md-surface-c-lowest);border-radius:12px;padding:18px;
+  box-shadow:var(--el1);animation:fade .3s ease both;
+}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.q-head{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.q-id-field{position:relative;flex:1;min-width:150px}
+.q-id-field .msym{position:absolute;left:0;top:50%;transform:translateY(-50%);color:var(--md-outline);font-size:18px}
+.q-id-input{
+  width:100%;background:transparent;border:none;border-bottom:1px solid var(--md-outline-var);
+  padding:6px 6px 6px 26px;font-family:var(--f-mono);font-size:14px;color:var(--md-primary);font-weight:500;
+}
+.q-id-input:focus{outline:none;border-bottom:2px solid var(--md-primary)}
+
+/* type as segmented tabs */
+.type-seg{display:inline-flex;border-radius:18px;background:var(--md-surface-c-high);padding:3px}
+.type-seg .tp{
+  padding:6px 14px;border-radius:16px;font-family:var(--f-body);font-size:13px;font-weight:500;
+  color:var(--md-on-surface-var);cursor:pointer;transition:.15s;border:none;background:transparent;
+}
+.type-seg .tp[data-t=noul].active{background:var(--viz-teal);color:#fff}
+.type-seg .tp[data-t=choice].active{background:var(--viz-blue);color:#fff}
+.type-seg .tp[data-t=score].active{background:var(--viz-amber);color:#fff}
+
+.icon-btn{
+  width:40px;height:40px;border-radius:50%;border:none;background:transparent;cursor:pointer;
+  color:var(--md-on-surface-var);display:flex;align-items:center;justify-content:center;transition:background .15s;
+}
+.icon-btn:hover{background:rgba(179,38,30,.08);color:var(--md-error)}
+
+.field-label{font-size:12px;color:var(--md-on-surface-var);margin:14px 0 8px;font-weight:500;display:block}
+.q-instr{
+  width:100%;background:transparent;border:1px solid var(--md-outline-var);border-radius:8px;
+  padding:12px;font-family:var(--f-body);font-size:14px;color:var(--md-on-surface);resize:vertical;min-height:52px;
+}
+.q-instr:focus{outline:none;border-color:var(--md-primary);box-shadow:inset 0 0 0 1px var(--md-primary)}
+
+.criteria-rows{display:flex;flex-direction:column;gap:8px}
+.crit-row{display:flex;gap:8px;align-items:center}
+.crit-row input{
+  flex:1;background:transparent;border:1px solid var(--md-outline-var);border-radius:8px;padding:10px 12px;
+  font-family:var(--f-mono);font-size:13px;color:var(--md-on-surface);
+}
+.crit-row input:focus{outline:none;border-color:var(--md-primary);box-shadow:inset 0 0 0 1px var(--md-primary)}
+.crit-row input[readonly]{background:var(--md-surface-c);border-color:transparent;color:var(--md-on-surface-var)}
+.crit-key{max-width:130px}
+.crit-del{
+  width:38px;height:38px;flex-shrink:0;border-radius:8px;border:1px solid var(--md-outline-var);
+  background:transparent;color:var(--md-on-surface-var);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;
+}
+.crit-del:hover{border-color:var(--md-error);color:var(--md-error)}
+.add-crit{
+  align-self:flex-start;margin-top:10px;height:36px;padding:0 16px;border-radius:18px;
+  border:1px solid var(--md-outline);background:transparent;color:var(--md-primary);cursor:pointer;
+  font-family:var(--f-body);font-size:13px;font-weight:500;display:inline-flex;align-items:center;gap:6px;transition:background .15s;
+}
+.add-crit:hover{background:rgba(11,87,208,.06)}
+.add-crit .msym{font-size:18px}
+
+/* ===== M3 buttons ===== */
+.btn{
+  height:40px;padding:0 24px;border-radius:20px;border:none;cursor:pointer;
+  font-family:var(--f-body);font-size:14px;font-weight:500;display:inline-flex;align-items:center;
+  justify-content:center;gap:8px;transition:box-shadow .15s,background .15s;
+}
+.btn .msym{font-size:20px}
+.btn-tonal{width:100%;background:var(--md-primary-container);color:var(--md-on-primary-container)}
+.btn-tonal:hover{box-shadow:var(--el1);background:#c3d7f7}
+.btn-filled{background:var(--md-primary);color:var(--md-on-primary)}
+.btn-filled:hover{box-shadow:var(--el2)}
+.btn-filled:disabled{background:rgba(26,28,30,.12);color:rgba(26,28,30,.38);cursor:not-allowed;box-shadow:none}
+.run-bar{margin-top:20px}
+.btn-run{width:100%;height:52px;border-radius:26px;font-size:15px}
+.btn-run .spin{width:18px;height:18px;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.btn-run.loading .spin{display:block}
+.btn-run.loading .msym{display:none}
+
+/* ===== results ===== */
+.result-meta{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.assist-chip{
+  display:flex;align-items:center;gap:8px;height:32px;padding:0 14px;border-radius:8px;
+  border:1px solid var(--md-outline-var);background:var(--md-surface-c-lowest);
+  font-family:var(--f-mono);font-size:12px;color:var(--md-on-surface-var);
+}
+.assist-chip b{color:var(--md-on-surface);font-weight:500}
+.assist-chip .msym{font-size:16px;color:var(--md-primary)}
+
+.empty-state{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  padding:70px 24px;color:var(--md-on-surface-var);gap:18px;
+}
+.empty-state .msym{font-size:64px;color:var(--md-outline-var)}
+.empty-state p{max-width:300px;font-size:14px;line-height:1.6}
+.empty-state code{font-family:var(--f-mono);background:var(--md-surface-c-high);padding:2px 6px;border-radius:4px;color:var(--md-primary)}
+
+.answers{display:flex;flex-direction:column;gap:16px}
+.ans-card{background:var(--md-surface-c-lowest);border-radius:12px;padding:20px;box-shadow:var(--el1);animation:fade .35s ease both}
+.ans-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+.ans-id{font-family:var(--f-mono);font-size:15px;color:var(--md-on-surface);font-weight:500}
+.ans-type{font-family:var(--f-body);font-size:11px;font-weight:500;letter-spacing:.3px;
+  padding:4px 12px;border-radius:8px;text-transform:uppercase}
+.ans-type.noul{background:#cceceb;color:#00504f}
+.ans-type.choice{background:var(--md-primary-container);color:var(--md-on-primary-container)}
+.ans-type.score{background:#ffddb3;color:#5c3a00}
+.ans-instr{font-size:13px;color:var(--md-on-surface-var);margin-bottom:18px}
+
+/* noul */
+.noul-wrap{display:flex;align-items:center;gap:20px}
+.noul-val{font-family:var(--f-brand);font-size:42px;font-weight:700;line-height:1;min-width:96px}
+.noul-bar{flex:1}
+.noul-track{height:12px;background:var(--md-surface-c-high);border-radius:12px;overflow:hidden}
+.noul-fill{height:100%;border-radius:12px;transition:width .8s cubic-bezier(.2,0,0,1)}
+.noul-labels{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:11px;color:var(--md-on-surface-var);margin-top:8px}
+
+/* prob bars */
+.prob-list{display:flex;flex-direction:column;gap:12px}
+.prow-top{display:flex;justify-content:space-between;margin-bottom:6px;font-family:var(--f-body);font-size:13px}
+.prow-opt{color:var(--md-on-surface);display:flex;align-items:center;gap:6px}
+.prow-opt.win{color:var(--md-primary);font-weight:500}
+.prow-opt .msym{font-size:16px}
+.prow-pct{color:var(--md-on-surface-var);font-family:var(--f-mono)}
+.prob-track{height:8px;background:var(--md-surface-c-high);border-radius:8px;overflow:hidden}
+.prob-fill{height:100%;border-radius:8px;background:var(--md-outline-var);transition:width .8s cubic-bezier(.2,0,0,1)}
+.prob-fill.win{background:var(--md-primary)}
+
+/* score */
+.score-headline{display:flex;align-items:baseline;gap:14px;margin-bottom:16px}
+.score-big{font-family:var(--f-brand);font-size:42px;font-weight:700;color:var(--viz-amber);line-height:1}
+.score-level{font-family:var(--f-body);font-size:14px;color:var(--md-on-surface-var)}
+.score-scale{display:flex;gap:5px;margin-bottom:18px}
+.score-seg{flex:1;height:8px;border-radius:4px;background:var(--md-surface-c-high)}
+
+.conf{display:flex;align-items:center;gap:12px;margin-top:18px;padding-top:16px;border-top:1px solid var(--md-surface-c-high)}
+.conf-label{font-size:12px;color:var(--md-on-surface-var);font-weight:500;white-space:nowrap}
+.conf-track{flex:1;height:8px;background:var(--md-surface-c-high);border-radius:8px;overflow:hidden}
+.conf-fill{height:100%;background:var(--viz-purple);border-radius:8px;transition:width .8s cubic-bezier(.2,0,0,1)}
+.conf-val{font-family:var(--f-mono);font-size:13px;color:var(--md-on-surface);font-weight:500}
+
+/* raw json */
+.raw-toggle{margin-top:20px}
+.raw-toggle summary{
+  font-family:var(--f-body);font-size:13px;font-weight:500;color:var(--md-primary);cursor:pointer;
+  list-style:none;display:flex;align-items:center;gap:8px;padding:10px 0;
+}
+.raw-toggle summary::-webkit-details-marker{display:none}
+.raw-toggle summary .msym{transition:.2s;font-size:20px}
+.raw-toggle[open] summary .msym{transform:rotate(180deg)}
+pre.json{
+  background:var(--md-surface-c);border-radius:12px;padding:18px;font-family:var(--f-mono);
+  font-size:12px;line-height:1.7;color:var(--md-on-surface-var);overflow-x:auto;white-space:pre;
+}
+.json .jk{color:var(--viz-blue)}
+.json .js{color:var(--viz-green)}
+.json .jn{color:var(--viz-amber)}
+.json .jb{color:var(--viz-purple)}
+
+.error-box{
+  background:var(--md-error-container);border-radius:12px;padding:20px;color:var(--md-on-error-container);
+  font-family:var(--f-body);font-size:14px;line-height:1.6;
+}
+.error-box b{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:15px;font-weight:500}
+.error-box pre{font-family:var(--f-mono);font-size:12px;white-space:pre-wrap;margin-top:8px;line-height:1.6}
+.cors-note{margin-top:14px;padding-top:14px;border-top:1px solid rgba(65,14,11,.2);font-size:13px}
+.cors-note code{font-family:var(--f-mono);background:rgba(65,14,11,.08);padding:1px 5px;border-radius:4px}
+
+@media(max-width:900px){
+  .wrap{grid-template-columns:1fr}
+  .config-grid{grid-template-columns:1fr}
+}
+
+/* ===== 简洁工作台：参考 Google AI Studio / Apple 工具类界面 ===== */
+:root{
+  --md-primary:#1a73e8;
+  --md-primary-container:#e8f0fe;
+  --md-on-primary-container:#174ea6;
+  --md-surface:#ffffff;
+  --md-surface-c-lowest:#ffffff;
+  --md-surface-c-low:#ffffff;
+  --md-surface-c:#f8f9fa;
+  --md-surface-c-high:#f1f3f4;
+  --md-surface-c-highest:#e8eaed;
+  --md-on-surface:#202124;
+  --md-on-surface-var:#5f6368;
+  --md-outline:#9aa0a6;
+  --md-outline-var:#dadce0;
+  --el1:none;
+  --el2:0 1px 2px rgba(60,64,67,.18),0 1px 3px 1px rgba(60,64,67,.08);
+}
+body{background:#fff;color:#202124}
+.appbar{
+  height:56px;padding:0 18px;background:#fff;border-bottom:1px solid #dadce0;
+}
+.appbar .logo-mark{
+  width:30px;height:30px;border-radius:8px;background:#1a73e8;
+  font-size:16px;font-weight:500;
+}
+.appbar .titles{display:flex;align-items:baseline;gap:10px}
+.appbar .titles h1{font-size:18px}
+.appbar .titles p{font-family:var(--f-body);font-size:12px;color:#80868b}
+.endpoint-chip{height:30px;padding:0 10px;background:transparent;border:1px solid #dadce0;border-radius:6px}
+
+.wrap{
+  max-width:none;margin:0;padding:0;gap:0;
+  grid-template-columns:minmax(560px,58%) minmax(380px,42%);
+  height:calc(100vh - 56px);overflow:hidden;
+}
+.left,.right{height:100%;overflow-y:auto}
+.left{background:#fff}
+.right{background:#f8f9fa;border-left:1px solid #dadce0}
+.card{
+  background:transparent;border-radius:0;padding:24px 28px;box-shadow:none;
+}
+.card + .card{margin-top:0;border-top:1px solid #e8eaed}
+.right .card{padding:24px}
+.pane-title{font-size:15px;margin-bottom:3px}
+.pane-title .msym{font-size:20px;color:#5f6368}
+.pane-sub{font-size:12px;margin-bottom:18px;color:#80868b}
+
+.tf label{background:#fff}
+.tf input,.tf textarea,.tf select{
+  border-color:#dadce0;border-radius:6px;
+}
+.tf input:focus,.tf textarea:focus,.tf select:focus{
+  border-color:#1a73e8;box-shadow:inset 0 0 0 1px #1a73e8;
+}
+.segmented{height:34px;border-color:#dadce0;border-radius:6px}
+.segmented .seg{padding:0 14px;font-size:13px}
+.segmented .seg + .seg{border-left-color:#dadce0}
+.segmented .seg.active{background:#e8f0fe;color:#174ea6}
+
+.q-list{gap:12px}
+.q-card{
+  border:1px solid #dadce0;border-radius:8px;padding:16px;
+  box-shadow:none;background:#fff;
+}
+.q-head{margin-bottom:12px}
+.type-seg{border-radius:6px;background:#f1f3f4;padding:2px}
+.type-seg .tp{padding:5px 10px;border-radius:4px;font-size:12px}
+.type-seg .tp[data-t=noul].active,
+.type-seg .tp[data-t=choice].active,
+.type-seg .tp[data-t=score].active{background:#fff;color:#1a73e8;box-shadow:0 1px 2px rgba(60,64,67,.18)}
+.q-id-input{color:#1a73e8}
+.field-label{margin-top:12px}
+.q-instr,.crit-row input{border-color:#dadce0;border-radius:6px}
+.add-crit{height:32px;border-radius:6px;border-color:#dadce0;padding:0 12px}
+.btn-run{height:44px;border-radius:22px;width:auto;min-width:150px;padding:0 24px}
+.run-bar{display:flex;justify-content:flex-end;margin-top:18px}
+
+.empty-state{padding:110px 20px}
+.empty-state .msym{font-size:48px;color:#bdc1c6}
+.result-meta{gap:8px}
+.assist-chip{height:28px;border-radius:6px;padding:0 9px;background:#fff}
+.ans-card{border:1px solid #dadce0;border-radius:8px;padding:18px;box-shadow:none}
+.ans-type{border-radius:4px;padding:3px 8px}
+.raw-toggle pre{border:1px solid #dadce0;background:#fff}
+
+@media(max-width:900px){
+  .wrap{display:block;height:auto}
+  .left,.right{height:auto;overflow:visible}
+  .right{border-left:none;border-top:1px solid #dadce0}
+  .endpoint-chip{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="appbar">
+  <div class="logo-mark">J</div>
+  <div class="titles">
+    <h1>Jev Studio</h1>
+    <p>System One playground</p>
+  </div>
+  <div class="spacer"></div>
+  <div class="endpoint-chip"><span class="m">POST</span> api.typesafe.ai/v1/systemone</div>
+</div>
+
+<div class="wrap">
+  <!-- ============ LEFT ============ -->
+  <div class="left">
+    <div class="card">
+      <div class="pane-title"><span class="msym">key</span>连接配置</div>
+      <div class="pane-sub">填入 API Key 与模型。Key 仅保存在浏览器内存中。</div>
+      <div class="config-grid">
+        <div class="tf mono" id="tfKey">
+          <label>API Key *</label>
+          <input type="password" id="apiKey" placeholder="sk-… (Bearer token)" autocomplete="off">
+        </div>
+        <div class="tf" id="tfModel">
+          <label>Model</label>
+          <select id="model">
+            <option value="jev-latest">jev-latest</option>
+            <option value="jev-1.13.0">jev-1.13.0</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="pane-title"><span class="msym">description</span>State · 待评估内容</div>
+      <div class="pane-sub">支持官方 API 定义的字符串、对象和数组三种顶层格式。</div>
+      <div class="segmented" style="margin-bottom:18px">
+        <button class="seg active" data-mode="string"><span class="msym">notes</span>字符串</button>
+        <button class="seg" data-mode="object"><span class="msym">data_object</span>对象</button>
+        <button class="seg" data-mode="array"><span class="msym">data_array</span>数组</button>
+      </div>
+      <div class="tf">
+        <label>state</label>
+        <textarea id="stateInput" style="min-height:120px">Help! My payouts have been failing for 3 days.</textarea>
+      </div>
+      <div class="supporting" id="stateHint">适合单条消息、文章或段落；请求中的 <code>state</code> 将作为字符串发送。</div>
+    </div>
+
+    <div class="card">
+      <div class="pane-title"><span class="msym">quiz</span>Questions · 提问</div>
+      <div class="pane-sub">支持 Noul（是非）、Choice（单选）、Score（评分）三种类型，可自由增删。</div>
+      <div class="q-list" id="qList"></div>
+      <button class="btn add-crit" id="addQ" style="width:100%;height:44px;justify-content:center"><span class="msym">add</span>添加问题</button>
+      <div class="run-bar">
+        <button class="btn btn-filled btn-run" id="runBtn">
+          <span class="spin"></span><span class="msym">play_arrow</span><span class="lbl">运行评估</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ RIGHT ============ -->
+  <div class="right">
+    <div class="card">
+      <div class="pane-title"><span class="msym">insights</span>Answers · 结构化结果</div>
+      <div class="pane-sub">带概率与置信度的类型化判断。</div>
+      <div id="resultArea">
+        <div class="empty-state">
+          <span class="msym">bubble_chart</span>
+          <p>在左侧配置 <code>state</code> 与 <code>questions</code>，点击 <b>运行评估</b>，Jev 将返回结构化判断。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// 通过本地脚本转发请求：浏览器只与 localhost 同源通信，绕开官方接口的 CORS 白名单。
+// 若直接以 file:// 双击打开（未启动本地脚本），则回退为直连官方接口（大概率被 CORS 拦截，会给出提示）。
+const LOCAL_PROXY="/api/systemone";
+const DIRECT_URL="https://api.typesafe.ai/v1/systemone";
+const USE_PROXY=location.protocol==="http:"||location.protocol==="https:";
+const API_URL=USE_PROXY?LOCAL_PROXY:DIRECT_URL;
+let qidCounter=0, stateMode="string";
+const stateDrafts={
+  string:"Help! My payouts have been failing for 3 days.",
+  object:JSON.stringify({
+    message:"My card was charged twice.",
+    order_id:"A-104",
+    refund_policy:"Duplicate charges are eligible for a refund."
+  },null,2),
+  array:JSON.stringify([
+    "Hi",
+    "My customer number is TS1337.",
+    "My card was charged twice."
+  ],null,2)
+};
+const stateHints={
+  string:"适合单条消息、文章或段落；请求中的 state 将作为字符串发送。",
+  object:"适合命名字段、关联记录或应用状态；必须是 JSON 对象，不能是数组或 null。",
+  array:"适合按顺序组织消息或记录；必须是 JSON 数组。"
+};
+
+/* ---------- question factory ---------- */
+function newQuestion(preset){
+  qidCounter++;
+  const data=preset||{id:"question_"+qidCounter,type:"noul",instructions:"",criteria:null};
+  const card=document.createElement("div");
+  card.className="q-card";card.dataset.type=data.type;
+  card.innerHTML=`
+    <div class="q-head">
+      <div class="q-id-field">
+        <span class="msym">tag</span>
+        <input class="q-id-input" value="${escAttr(data.id)}" placeholder="question_id">
+      </div>
+      <div class="type-seg">
+        <button class="tp ${data.type==='noul'?'active':''}" data-t="noul">Noul</button>
+        <button class="tp ${data.type==='choice'?'active':''}" data-t="choice">Choice</button>
+        <button class="tp ${data.type==='score'?'active':''}" data-t="score">Score</button>
+      </div>
+      <button class="icon-btn q-del" title="删除"><span class="msym">delete</span></button>
+    </div>
+    <div class="q-body">
+      <span class="field-label">Instructions · 问题描述</span>
+      <textarea class="q-instr" placeholder="${instrPlaceholder(data.type)}">${esc(data.instructions||"")}</textarea>
+      <div class="q-criteria"></div>
+    </div>`;
+  card.querySelector(".q-del").onclick=()=>card.remove();
+  card.querySelectorAll(".tp").forEach(p=>{
+    p.onclick=()=>{
+      card.dataset.type=p.dataset.t;
+      card.querySelectorAll(".tp").forEach(x=>x.classList.toggle("active",x===p));
+      card.querySelector(".q-instr").placeholder=instrPlaceholder(p.dataset.t);
+      renderCriteria(card,p.dataset.t,null);
+    };
+  });
+  renderCriteria(card,data.type,data.criteria);
+  document.getElementById("qList").appendChild(card);
+  return card;
+}
+function instrPlaceholder(t){
+  if(t==="noul")return "Does this convey urgency?";
+  if(t==="choice")return "Which team should handle this?";
+  return "How frustrated is the customer?";
+}
+
+/* ---------- criteria ---------- */
+function renderCriteria(card,type,preset){
+  const box=card.querySelector(".q-criteria");box.innerHTML="";
+  if(type==="noul"){
+    box.innerHTML=`<span class="field-label">Criteria · 可选（yes / no 含义）</span>
+      <div class="criteria-rows">
+        <div class="crit-row"><input class="crit-key" value="true" readonly><input class="crit-true" placeholder="值接近 1 表示…（可留空）"></div>
+        <div class="crit-row"><input class="crit-key" value="false" readonly><input class="crit-false" placeholder="值接近 0 表示…（可留空）"></div>
+      </div>`;
+    if(preset){card.querySelector(".crit-true").value=preset.true||"";card.querySelector(".crit-false").value=preset.false||"";}
+  }else if(type==="choice"){
+    box.innerHTML=`<span class="field-label">Criteria · 选项（key → 描述，描述可空）</span>
+      <div class="criteria-rows" data-rows></div>
+      <button class="add-crit" type="button"><span class="msym">add</span>选项</button>`;
+    const rows=box.querySelector("[data-rows]");
+    const entries=preset?Object.entries(preset):[["billing","Payments, invoicing, refunds"],["technical","Bugs, outages, integrations"],["sales","Pricing, upgrades"]];
+    entries.forEach(([k,v])=>rows.appendChild(choiceRow(k,typeof v==="string"?v:"")));
+    box.querySelector(".add-crit").onclick=()=>rows.appendChild(choiceRow("",""));
+  }else{
+    box.innerHTML=`<span class="field-label">Criteria · 等级（有序，2–10 级，低 → 高）</span>
+      <div class="criteria-rows" data-rows></div>
+      <button class="add-crit" type="button"><span class="msym">add</span>等级</button>`;
+    const rows=box.querySelector("[data-rows]");
+    const levels=Array.isArray(preset)&&preset.length?preset:["Calm","Frustrated","Very angry"];
+    levels.forEach((lv,i)=>rows.appendChild(scoreRow(i,typeof lv==="string"?lv:"")));
+    box.querySelector(".add-crit").onclick=()=>{rows.appendChild(scoreRow(rows.children.length,""));reindexScore(rows);};
+  }
+}
+function choiceRow(k,v){
+  const r=document.createElement("div");r.className="crit-row";
+  r.innerHTML=`<input class="crit-key ckey" value="${escAttr(k)}" placeholder="option"><input class="cval" value="${escAttr(v)}" placeholder="描述（可空）"><button class="crit-del" type="button"><span class="msym">close</span></button>`;
+  r.querySelector(".crit-del").onclick=()=>r.remove();return r;
+}
+function scoreRow(i,v){
+  const r=document.createElement("div");r.className="crit-row";
+  r.innerHTML=`<input class="crit-key lvl" value="${i}" readonly style="max-width:52px;text-align:center"><input class="cval" value="${escAttr(v)}" placeholder="等级 ${i} 的含义"><button class="crit-del" type="button"><span class="msym">close</span></button>`;
+  r.querySelector(".crit-del").onclick=()=>{const p=r.parentNode;r.remove();reindexScore(p);};return r;
+}
+function reindexScore(rows){[...rows.children].forEach((r,i)=>{const l=r.querySelector(".lvl");if(l){l.value=i;r.querySelector(".cval").placeholder="等级 "+i+" 的含义";}});}
+
+/* ---------- build request ---------- */
+function buildRequest(){
+  const model=document.getElementById("model").value;
+  let state;const raw=document.getElementById("stateInput").value;
+  if(stateMode==="string"){
+    state=raw;
+  }else{
+    state=JSON.parse(raw);
+    if(stateMode==="object"&&(state===null||Array.isArray(state)||typeof state!=="object")){
+      throw new TypeError("对象模式要求 state 的顶层必须是 JSON 对象，例如 {\"message\":\"...\"}。");
+    }
+    if(stateMode==="array"&&!Array.isArray(state)){
+      throw new TypeError("数组模式要求 state 的顶层必须是 JSON 数组，例如 [\"消息 1\",\"消息 2\"]。");
+    }
+  }
+  const questions={};
+  document.querySelectorAll("#qList .q-card").forEach(card=>{
+    const id=card.querySelector(".q-id-input").value.trim()||("q"+Math.random().toString(36).slice(2,6));
+    const type=card.dataset.type;
+    const instr=card.querySelector(".q-instr").value.trim();
+    const q={type,instructions:instr};
+    if(type==="noul"){
+      const t=card.querySelector(".crit-true").value.trim(),f=card.querySelector(".crit-false").value.trim();
+      if(t||f){q.criteria={};if(t)q.criteria.true=t;if(f)q.criteria.false=f;}
+    }else if(type==="choice"){
+      const crit={};
+      card.querySelectorAll("[data-rows] .crit-row").forEach(r=>{
+        const k=r.querySelector(".ckey").value.trim();if(!k)return;
+        crit[k]=r.querySelector(".cval").value.trim()||null;
+      });
+      q.criteria=crit;
+    }else{
+      const arr=[];
+      card.querySelectorAll("[data-rows] .crit-row").forEach(r=>arr.push(r.querySelector(".cval").value.trim()));
+      q.criteria=arr;
+    }
+    questions[id]=q;
+  });
+  return {state,model,questions};
+}
+
+/* ---------- run ---------- */
+async function run(){
+  const key=document.getElementById("apiKey").value.trim();
+  const btn=document.getElementById("runBtn");
+  if(!key){showError("缺少 API Key","请在「连接配置」中填入你的 TypeSafe API Key（Bearer token）。");return;}
+  let body;
+  try{body=buildRequest();}
+  catch(e){
+    const title=e instanceof SyntaxError?"State JSON 解析失败":"State 格式不匹配";
+    showError(title,e.message);
+    return;
+  }
+  if(Object.keys(body.questions).length===0){showError("没有问题","请至少添加一个 question。");return;}
+  btn.classList.add("loading");btn.disabled=true;
+  const t0=performance.now();
+  try{
+    const res=await fetch(API_URL,{method:"POST",
+      headers:{"Authorization":"Bearer "+key,"Content-Type":"application/json"},
+      body:JSON.stringify(body)});
+    const ms=Math.round(performance.now()-t0);
+    const text=await res.text();let data;try{data=JSON.parse(text);}catch{data=null;}
+    if(!res.ok){showError(res.status+" "+res.statusText,data?JSON.stringify(data,null,2):text);return;}
+    renderAnswers(data,ms,body.questions);
+  }catch(err){
+    if(!USE_PROXY){
+      showError("需要启动本地服务","检测到你是直接双击打开的 HTML（file:// 模式），无法直连 TypeSafe 接口（会被 CORS 拦截）。请改为运行文件夹里的启动脚本：macOS 双击 start.command / Windows 双击 start.bat（或终端执行 python3 server.py），然后访问 http://localhost:8722。",true);
+    }else{
+      showError("请求失败 · 网络或本地服务异常","无法连接本地转发服务，请确认 python3 server.py 仍在运行。原始错误："+err.message,true);
+    }
+  }
+  finally{btn.classList.remove("loading");btn.disabled=false;}
+}
+
+/* ---------- render ---------- */
+function renderAnswers(data,ms,questions){
+  const area=document.getElementById("resultArea");
+  const ans=data.answers||{},u=data.usage||{};
+  let html=`<div class="result-meta">
+    <div class="assist-chip"><span class="msym">memory</span><span>model</span> <b>${esc(data.model||"—")}</b></div>
+    <div class="assist-chip"><span class="msym">timer</span><span>latency</span> <b>${ms} ms</b></div>
+    <div class="assist-chip"><span class="msym">login</span><span>in</span> <b>${u.input_tokens??"—"}</b></div>
+    <div class="assist-chip"><span class="msym">logout</span><span>out</span> <b>${u.output_tokens??"—"}</b></div>
+  </div><div class="answers">`;
+  for(const [id,a] of Object.entries(ans)){
+    html+=`<div class="ans-card"><div class="ans-head"><span class="ans-id">${esc(id)}</span><span class="ans-type ${a.type}">${a.type}</span></div>`;
+    const instr=questions[id]?.instructions;
+    if(instr&&typeof instr==="string")html+=`<div class="ans-instr">${esc(instr)}</div>`;
+    if(a.type==="noul"){
+      const v=a.noul,pct=(v*100).toFixed(1);
+      const col=v>=.66?"var(--viz-green)":v>=.33?"var(--viz-amber)":"var(--viz-red)";
+      html+=`<div class="noul-wrap"><div class="noul-val" style="color:${col}">${v.toFixed(2)}</div>
+        <div class="noul-bar"><div class="noul-track"><div class="noul-fill" style="width:${pct}%;background:${col}"></div></div>
+        <div class="noul-labels"><span>no · 0.0</span><span>${pct}%</span><span>1.0 · yes</span></div></div></div>`;
+    }else if(a.type==="choice"){
+      const probs=a.probabilities||{};
+      const sorted=Object.entries(probs).sort((x,y)=>y[1]-x[1]);
+      html+=`<div class="prob-list">`;
+      sorted.forEach(([opt,p])=>{
+        const win=opt===a.choice;
+        html+=`<div class="prob-row"><div class="prow-top">
+          <span class="prow-opt ${win?'win':''}">${win?'<span class="msym">check_circle</span>':''}${esc(opt)}</span>
+          <span class="prow-pct">${(p*100).toFixed(1)}%</span></div>
+          <div class="prob-track"><div class="prob-fill ${win?'win':''}" style="width:${(p*100).toFixed(1)}%"></div></div></div>`;
+      });
+      html+=`</div>`+confBlock(a.confidence);
+    }else if(a.type==="score"){
+      const legend=a.legend||{},probs=a.probabilities||{};
+      const levels=Object.keys(legend).sort((x,y)=>+x-+y);
+      const nearest=Math.round(a.score);
+      html+=`<div class="score-headline"><span class="score-big">${a.score.toFixed(2)}</span><span class="score-level">≈ ${esc(legend[nearest]??"")}</span></div>`;
+      html+=`<div class="score-scale">`;
+      levels.forEach(lv=>{const p=probs[lv]||0;const on=a.score>=(+lv-0.5);
+        html+=`<div class="score-seg" style="background:${on?'var(--viz-amber)':'var(--md-surface-c-high)'};opacity:${.4+p*.6}" title="${esc(legend[lv])}: ${(p*100).toFixed(1)}%"></div>`;});
+      html+=`</div><div class="prob-list">`;
+      levels.forEach(lv=>{const p=probs[lv]||0;const hot=+lv===nearest;
+        html+=`<div class="prob-row"><div class="prow-top">
+          <span class="prow-opt ${hot?'win':''}" style="${hot?'color:var(--viz-amber)':''}">[${lv}] ${esc(legend[lv]||"")}</span>
+          <span class="prow-pct">${(p*100).toFixed(1)}%</span></div>
+          <div class="prob-track"><div class="prob-fill" style="width:${(p*100).toFixed(1)}%;background:${hot?'var(--viz-amber)':'var(--md-outline-var)'}"></div></div></div>`;});
+      html+=`</div>`+confBlock(a.confidence);
+    }
+    html+=`</div>`;
+  }
+  html+=`</div><details class="raw-toggle"><summary><span class="msym">code</span>原始 JSON 响应<span class="msym">expand_more</span></summary><pre class="json">${jsonHi(data)}</pre></details>`;
+  area.innerHTML=html;
+}
+function confBlock(c){if(c==null)return "";
+  return `<div class="conf"><span class="conf-label">Confidence</span>
+    <div class="conf-track"><div class="conf-fill" style="width:${(c*100).toFixed(1)}%"></div></div>
+    <span class="conf-val">${(c*100).toFixed(1)}%</span></div>`;}
+
+function showError(title,detail,cors){
+  document.getElementById("resultArea").innerHTML=`<div class="error-box">
+    <b><span class="msym">error</span>${esc(title)}</b><pre>${esc(detail||"")}</pre>
+    ${cors?`<div class="cors-note">提示：浏览器直接跨域调用可能被 CORS 拦截。若如此，可通过一个后端代理转发请求，或用带 <code>--disable-web-security</code> 的调试浏览器测试。API Key 与请求体已正确组装。</div>`:``}</div>`;}
+
+/* ---------- helpers ---------- */
+function esc(s){return String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
+function escAttr(s){return String(s).replace(/"/g,"&quot;").replace(/</g,"&lt;");}
+function jsonHi(obj){return esc(JSON.stringify(obj,null,2))
+  .replace(/&quot;([^&]+?)&quot;(\s*:)/g,'<span class="jk">"$1"</span>$2')
+  .replace(/:\s*&quot;([^&]*?)&quot;/g,': <span class="js">"$1"</span>')
+  .replace(/:\s*(-?\d+\.?\d*)/g,': <span class="jn">$1</span>')
+  .replace(/:\s*(true|false|null)/g,': <span class="jb">$1</span>');}
+
+/* ---------- focus states for M3 fields ---------- */
+document.querySelectorAll(".tf input,.tf textarea,.tf select").forEach(el=>{
+  el.addEventListener("focus",()=>el.closest(".tf").classList.add("focus"));
+  el.addEventListener("blur",()=>el.closest(".tf").classList.remove("focus"));
+});
+
+/* ---------- state mode ---------- */
+document.querySelectorAll(".segmented .seg").forEach(seg=>{
+  seg.onclick=()=>{
+    const ta=document.getElementById("stateInput"),hint=document.getElementById("stateHint");
+    stateDrafts[stateMode]=ta.value;
+    document.querySelectorAll(".segmented .seg").forEach(s=>s.classList.toggle("active",s===seg));
+    stateMode=seg.dataset.mode;
+    ta.value=stateDrafts[stateMode];
+    hint.textContent=stateHints[stateMode];
+  };
+});
+document.getElementById("addQ").onclick=()=>newQuestion();
+document.getElementById("runBtn").onclick=run;
+
+/* ---------- seed ---------- */
+newQuestion({id:"is_urgent",type:"noul",instructions:"Does this convey urgency?",criteria:{true:"Explicitly time-sensitive",false:"No urgency expressed"}});
+newQuestion({id:"department",type:"choice",instructions:"Which team should handle this?",criteria:{billing:"Payments, invoicing, refunds",technical:"Bugs, outages, integrations",sales:"Pricing, upgrades, new accounts"}});
+newQuestion({id:"frustration",type:"score",instructions:"How frustrated is the customer?",criteria:["Calm","Frustrated","Very angry"]});
+</script>
+</body>
+</html>
