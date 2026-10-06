@@ -1,14 +1,10 @@
-# Jev Studio · 本地运行版
+# Jev Studio · Web UI界面
 
-一个可以直接分享给别人使用的 TypeSafe **Jev** 调用界面。后端脚本在**用户本机**运行，浏览器只与 `localhost` 通信，从而绕开官方接口的 CORS 白名单限制。
-
-## 为什么需要本地脚本
-
-TypeSafe 的接口（`api.typesafe.ai/v1/systemone`）采用**来源白名单**，浏览器直接跨域调用会被拦截（返回 `Disallowed CORS origin`）。因此纯 HTML 双击打开无法调用。本方案用一个零依赖的本地脚本转发请求：服务器到服务器不受 CORS 限制，问题彻底解决。
+一个通过web ui调用jev模型的脚本 **Jev** 调用界面。后端脚本在**用户本机**运行，浏览器只与 `localhost` 通信。
 
 ## 使用步骤
 
-后端使用 **Python 3**（macOS 与多数 Linux 已自带，无需额外安装）。
+后端使用 **Python 3**
 
 1. 确认有 Python 3（终端执行 `python3 --version`；Windows 可从 [python.org](https://www.python.org/downloads/) 安装，安装时勾选 “Add Python to PATH”）。
 2. 启动服务：
